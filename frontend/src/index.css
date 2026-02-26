@@ -1,0 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* Sky: Children of the Light — deep midnight-blue dark theme */
+    --background: 0.13 0.04 270;
+    --foreground: 0.94 0.02 80;
+
+    --card: 0.17 0.05 270;
+    --card-foreground: 0.94 0.02 80;
+
+    --popover: 0.19 0.055 270;
+    --popover-foreground: 0.94 0.02 80;
+
+    /* Warm amber primary */
+    --primary: 0.76 0.14 65;
+    --primary-foreground: 0.12 0.03 270;
+
+    --secondary: 0.22 0.06 270;
+    --secondary-foreground: 0.88 0.02 80;
+
+    --muted: 0.21 0.05 270;
+    --muted-foreground: 0.58 0.04 270;
+
+    /* Pale gold accent */
+    --accent: 0.84 0.14 88;
+    --accent-foreground: 0.12 0.03 270;
+
+    --destructive: 0.62 0.22 25;
+    --destructive-foreground: 0.97 0.01 25;
+
+    --border: 0.28 0.06 270;
+    --input: 0.22 0.06 270;
+    --ring: 0.76 0.14 65;
+
+    --chart-1: 0.76 0.14 65;
+    --chart-2: 0.84 0.14 88;
+    --chart-3: 0.60 0.18 285;
+    --chart-4: 0.70 0.15 140;
+    --chart-5: 0.68 0.2 25;
+
+    --sidebar: 0.15 0.045 270;
+    --sidebar-foreground: 0.94 0.02 80;
+    --sidebar-primary: 0.76 0.14 65;
+    --sidebar-primary-foreground: 0.12 0.03 270;
+    --sidebar-accent: 0.22 0.06 270;
+    --sidebar-accent-foreground: 0.88 0.02 80;
+    --sidebar-border: 0.28 0.06 270;
+    --sidebar-ring: 0.76 0.14 65;
+
+    /* Custom glow tokens */
+    --glow-amber: oklch(0.76 0.14 65 / 0.25);
+    --glow-indigo: oklch(0.55 0.18 285 / 0.25);
+    --glow-gold: oklch(0.84 0.14 88 / 0.3);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Raleway', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cinzel', serif;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: oklch(0.17 0.05 270 / 0.75);
+    backdrop-filter: blur(16px);
+    border: 1px solid oklch(0.38 0.08 270 / 0.5);
+  }
+
+  .glass-card-light {
+    background: oklch(0.22 0.06 270 / 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid oklch(0.76 0.14 65 / 0.2);
+  }
+
+  .amber-glow {
+    box-shadow: 0 0 24px var(--glow-amber), 0 0 8px var(--glow-amber);
+  }
+
+  .indigo-glow {
+    box-shadow: 0 0 24px var(--glow-indigo), 0 0 8px var(--glow-indigo);
+  }
+
+  .gold-glow {
+    box-shadow: 0 0 32px var(--glow-gold), 0 0 12px var(--glow-gold);
+  }
+
+  .celestial-border {
+    border: 1px solid oklch(0.76 0.14 65 / 0.35);
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.38 0.08 270) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: oklch(0.38 0.08 270);
+    border-radius: 2px;
+  }
+
+  .sky-gradient {
+    background: linear-gradient(
+      180deg,
+      oklch(0.13 0.08 285) 0%,
+      oklch(0.18 0.07 275) 30%,
+      oklch(0.28 0.09 260) 55%,
+      oklch(0.45 0.12 55) 80%,
+      oklch(0.62 0.14 50) 100%
+    );
+  }
+}

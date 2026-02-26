@@ -1,0 +1,273 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 17,
+  "summary": "A co-related, synchronized timetable web app for exactly two users (User A and User B). Features: onboarding with Display Name + auto-detected/manual timezone selection, polling-based real-time private chat with image/file sharing (up to ~2MB), dual-column timezone-synced timetable (UTC storage, local display conversion), Internet Identity authentication, admin reset panel (passcode: 161189) for clearing all data on demand, and app-wide ambient music toggle. Built with React (Vite), Motoko backend on Internet Computer. App-wide Sky: Children of the Light visual theme with animated landing page sky background (golden-hour sky, drifting clouds, light particles), warm amber/soft indigo/pale gold celestial palette replacing the dark-teal theme across all screens.",
+  "architectural_notes": [
+    "All timetable events and chat timestamps stored in UTC; frontend converts to viewer's local timezone for display",
+    "Real-time sync via periodic polling (no WebSockets); chat and timetable refresh every few seconds",
+    "Authentication via Internet Identity (passkeys, Google, Apple, Microsoft)",
+    "Backend: Motoko canister on Internet Computer; Frontend: React with Vite + TypeScript",
+    "Timezone handling via browser Intl API and date-fns-tz",
+    "File/media sharing capped at ~2MB due to canister storage constraints",
+    "Admin reset function protected by passcode 161189; clears all users, messages, and timetable events on demand from within the app",
+    "Recurring timetable tasks stored as a single recurring rule record (not duplicated per day); rendered on matching days by the frontend"
+  ],
+  "known_issues": [
+    "Backend registration rejects new users as 'unauthorized' — registration must allow any unregistered principal to freely claim Slot A or B without admin approval; only block a third user once both slots are filled",
+    "Timetable entry creation shows 'scheduled entries not available in this version' — timetable add/edit/delete is broken and needs to be fixed",
+    "Admin reset panel returns 'only authorized admins can reset' even when correct passcode 161189 is entered — backend adminReset function has a principal-based auth check blocking valid passcode-only resets"
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-implement-internet-identity-authentication-on-first-login-prompt-the-user-to-enter-a-display-name-and-confirm-their-timezone-auto-detected-via-browser-s-intl-datetimeformat-api-with-a-manual-override-dropdown-listing-all-iana-timezones-store-this-profile-data-in-the-backend-tied-to-the-user-s-principal",
+      "title": "Implement Internet Identity authentication. On first login, prompt the user to enter a Display Name and confirm their timezone (auto-detected via browser's Intl.DateTimeFormat API, with a manual override dropdown listing all IANA timezones). Store this profile data in the backend tied to the user's principal.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-strict-two-slot-user-system-user-a-and-user-b-the-first-principal-to-register-occupies-slot-a-the-second-occupies-slot-b-no-additional-users-can-join-the-dashboard-must-prominently-display-both-users-display-names-and-their-current-local-times-auto-updating",
+      "title": "Implement a strict two-slot user system (User A and User B). The first principal to register occupies Slot A; the second occupies Slot B. No additional users can join. The dashboard must prominently display both users' display names and their current local times (auto-updating).",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-polling-based-real-time-private-chat-between-the-two-users-poll-for-new-messages-every-3-seconds-support-text-messages-and-file-image-attachments-up-to-2mb-images-must-render-inline-in-the-chat-ui-non-image-files-must-appear-as-downloadable-links-all-message-timestamps-must-be-stored-in-utc-and-displayed-in-each-viewer-s-local-timezone",
+      "title": "Build a polling-based real-time private chat between the two users. Poll for new messages every 3 seconds. Support text messages and file/image attachments up to 2MB. Images must render inline in the chat UI. Non-image files must appear as downloadable links. All message timestamps must be stored in UTC and displayed in each viewer's local timezone.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-dual-column-timezone-synced-timetable-view-the-layout-must-have-a-24-hour-time-axis-on-the-left-with-two-side-by-side-columns-my-schedule-and-partner-s-name-s-schedule-all-events-must-be-stored-in-utc-when-rendered-each-user-s-column-must-show-events-aligned-to-their-own-local-time-so-both-users-see-a-shared-moment-in-time-at-the-same-row-both-users-can-add-edit-and-delete-tasks-in-their-own-column-changes-must-be-visible-to-the-other-user-within-3-seconds-via-polling",
+      "title": "Build a dual-column, timezone-synced timetable view. The layout must have a 24-hour time axis on the left, with two side-by-side columns: 'My Schedule' and '[Partner's Name]'s Schedule'. All events must be stored in UTC. When rendered, each user's column must show events aligned to their own local time, so both users see a shared moment in time at the same row. Both users can add, edit, and delete tasks in their own column; changes must be visible to the other user within ~3 seconds via polling.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-cohesive-modern-visual-theme-across-the-entire-app-use-a-clean-dark-or-deep-teal-aesthetic-with-warm-accent-colors-sharp-typography-and-a-card-based-layout-enforce-the-theme-consistently-across-onboarding-dashboard-chat-and-timetable-screens",
+      "title": "Apply a cohesive, modern visual theme across the entire app. Use a clean dark or deep-teal aesthetic with warm accent colors, sharp typography, and a card-based layout. Enforce the theme consistently across onboarding, dashboard, chat, and timetable screens.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-the-dashboard-page-prominently-display-both-users-display-names-and-their-current-local-times-each-user-s-clock-card-must-auto-update-every-second-to-show-live-local-time-in-their-own-timezone-if-the-partner-slot-is-not-yet-filled-display-a-waiting-placeholder-state-in-the-partner-clock-card",
+      "title": "On the Dashboard page, prominently display both users' display names and their current local times. Each user's clock card must auto-update every second to show live local time in their own timezone. If the partner slot is not yet filled, display a waiting/placeholder state in the partner clock card.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-chatinterface-frontend-component-to-the-live-backend-replace-any-stubbed-query-mutation-hooks-in-usequeries-ts-with-real-react-query-hooks-that-call-the-backend-s-sendmessage-command-and-getmessages-query-poll-getmessages-every-3-seconds-display-each-message-timestamp-converted-to-the-current-viewer-s-local-timezone",
+      "title": "Wire the ChatInterface frontend component to the live backend. Replace any stubbed query/mutation hooks in useQueries.ts with real React Query hooks that call the backend's sendMessage command and getMessages query. Poll getMessages every 3 seconds. Display each message timestamp converted to the current viewer's local timezone.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-full-sky-children-of-the-light-visual-theme-across-the-entire-app-replacing-the-current-dark-teal-theme-the-palette-must-use-warm-amber-soft-indigo-violet-pale-gold-and-deep-midnight-blue-tones-ui-elements-should-feature-soft-glows-celestial-starfield-motifs-and-ethereal-card-styles-typography-should-feel-light-and-luminous-apply-consistently-across-the-landing-page-onboarding-modal-dashboard-chat-and-timetable-screens",
+      "title": "Apply a full Sky: Children of the Light visual theme across the entire app, replacing the current dark-teal theme. The palette must use warm amber, soft indigo/violet, pale gold, and deep midnight-blue tones. UI elements should feature soft glows, celestial/starfield motifs, and ethereal card styles. Typography should feel light and luminous. Apply consistently across the landing page, onboarding modal, dashboard, chat, and timetable screens.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-animated-sky-children-of-the-light-sky-background-on-the-landingpage-the-animation-must-render-a-golden-hour-sky-deep-indigo-to-amber-gradient-horizon-with-1-procedurally-drifting-soft-cloud-layers-2-subtle-radial-light-ray-bursts-near-the-horizon-and-3-slowly-rising-floating-light-particles-spirits-fireflies-the-animation-must-run-continuously-via-css-or-canvas-and-must-not-block-interactivity",
+      "title": "Implement an animated Sky: Children of the Light sky background on the LandingPage. The animation must render a golden-hour sky (deep indigo-to-amber gradient horizon) with: (1) procedurally drifting soft cloud layers, (2) subtle radial light-ray bursts near the horizon, and (3) slowly rising floating light particles (spirits/fireflies). The animation must run continuously via CSS or canvas and must not block interactivity.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-admin-panel-ui-accessible-from-within-the-app-e-g-a-hidden-link-or-small-admin-icon-in-the-layout-header-when-opened-it-must-show-a-passcode-entry-field-if-the-user-enters-161189-and-submits-display-a-reset-all-data-button-pressing-the-button-calls-the-backend-admin-reset-function-and-on-success-shows-a-confirmation-message-and-reloads-the-app-state",
+      "title": "Add an admin panel UI accessible from within the app (e.g., a hidden link or small admin icon in the layout/header). When opened, it must show a passcode entry field. If the user enters '161189' and submits, display a 'Reset All Data' button. Pressing the button calls the backend admin reset function and, on success, shows a confirmation message and reloads the app state.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-looping-ambient-relaxing-audio-track-sky-children-of-the-light-style-soft-ethereal-gentle-that-plays-app-wide-across-all-screens-landing-page-onboarding-modal-dashboard-chat-timetable-the-audio-must-loop-seamlessly-and-be-managed-via-a-single-persistent-audio-instance-that-does-not-restart-on-navigation",
+      "title": "Add a looping ambient relaxing audio track (Sky: Children of the Light style — soft, ethereal, gentle) that plays app-wide across all screens (landing page, onboarding modal, dashboard, chat, timetable). The audio must loop seamlessly and be managed via a single persistent audio instance that does not restart on navigation.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-persistent-mute-unmute-toggle-button-fixed-on-screen-e-g-bottom-right-corner-that-controls-the-ambient-music-the-button-must-be-visible-on-all-screens-at-all-times-and-must-show-a-clear-music-on-music-off-icon-the-user-s-preference-muted-unmuted-must-persist-across-navigation-within-the-session",
+      "title": "Add a persistent mute/unmute toggle button fixed on-screen (e.g., bottom-right corner) that controls the ambient music. The button must be visible on all screens at all times and must show a clear music-on / music-off icon. The user's preference (muted/unmuted) must persist across navigation within the session.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-timetable-entry-creation-bug-that-currently-shows-scheduled-entries-not-available-in-this-version-the-backend-must-expose-working-addentry-updateentry-and-deleteentry-functions-that-any-registered-user-can-call-to-manage-entries-in-their-own-timetable-column-the-frontend-addedittaskmodal-must-successfully-call-these-functions-and-the-timetableview-must-reflect-the-changes-within-3-seconds-via-polling",
+      "title": "Fix the timetable entry creation bug that currently shows 'scheduled entries not available in this version'. The backend must expose working addEntry, updateEntry, and deleteEntry functions that any registered user can call to manage entries in their own timetable column. The frontend AddEditTaskModal must successfully call these functions and the TimetableView must reflect the changes within ~3 seconds via polling.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-addedittaskmodal-frontend-component-to-include-a-recurrence-selector-ui-when-creating-or-editing-a-timetable-entry-users-must-be-able-to-optionally-choose-between-no-recurrence-default-one-time-every-weekday-mon-fri-or-every-weekend-sat-sun-the-selected-recurrence-pattern-must-be-passed-to-the-backend-mutation-when-the-form-is-submitted",
+      "title": "Update the AddEditTaskModal frontend component to include a recurrence selector UI. When creating or editing a timetable entry, users must be able to optionally choose between: no recurrence (default, one-time), every weekday (Mon–Fri), or every weekend (Sat–Sun). The selected recurrence pattern must be passed to the backend mutation when the form is submitted.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-timetableview-frontend-component-to-render-recurring-timetable-entries-on-all-matching-days-when-the-currently-viewed-day-matches-the-recurrence-pattern-of-an-entry-weekday-mon-fri-or-weekend-sat-sun-the-entry-must-appear-in-the-timetable-grid-for-that-day-as-a-positioned-task-block-on-days-that-do-not-match-the-recurrence-pattern-the-entry-must-not-appear-one-time-entries-continue-to-appear-only-on-their-specific-date",
+      "title": "Update the TimetableView frontend component to render recurring timetable entries on all matching days. When the currently viewed day matches the recurrence pattern of an entry (weekday Mon–Fri or weekend Sat–Sun), the entry must appear in the timetable grid for that day as a positioned task block. On days that do not match the recurrence pattern, the entry must not appear. One-time entries continue to appear only on their specific date.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Onboarding screen with Display Name input and timezone auto-detection + manual override dropdown",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Two-user system with exactly two slots (User A and User B), no friend search",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Polling-based real-time private chat with image/file sharing up to ~2MB; images render inline, files as download links",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Dual-column timezone-synced timetable: UTC storage, local display conversion, real-time edits visible to both users",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Implement the strict two-slot user system on the backend: the first principal to register occupies Slot A, the second occupies Slot B, and no additional principals may register. Expose a query that returns both registered users' profiles (principal, display name, timezone) so the frontend can identify and display both users.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Sky: Children of the Light app-wide theme: animated golden-hour sky landing page with drifting clouds, light rays, and floating particles; warm amber/soft indigo/pale gold celestial palette across onboarding, dashboard, chat, and timetable; glowing UI cards and ethereal typography",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Add backend support for the chat system: store messages as records containing sender principal, text content, optional file blob, optional file name, optional MIME type, and a UTC timestamp (nanoseconds). Expose: (1) a command to send a message, (2) a query to retrieve all messages, and (3) enforce that only the two registered users may send or read messages.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Add admin reset panel accessible from within the app, protected by passcode 161189, with a button to clear all backend data (registered users/slots, chat messages, timetable events) on demand.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Add app-wide ambient relaxing music (Sky: CotL style) playing across all screens (landing, onboarding, dashboard, chat, timetable) with a persistent toggle button (mute/unmute) fixed on-screen.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "On deployment, wipe all backend state — clear all registered user slots, all chat messages, and all timetable events — so the app starts completely fresh with no existing data.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Add a backend admin reset function that accepts a passcode and, if the passcode matches '161189', clears all registered users, all chat messages, and all timetable events. The function must reject any call with a wrong or missing passcode.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Fix the backend registration logic in backend/main.mo so that any authenticated but unregistered principal can freely claim Slot A (if empty) or Slot B (if Slot A is taken but Slot B is empty), without requiring any admin approval or role assignment. Only reject a registration attempt when both Slot A and Slot B are already occupied. Remove or bypass any access-control check that treats new registrations as unauthorized.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Rewrite the `registerUser` function in `backend/main.mo` so that any authenticated (non-anonymous) principal that is not yet registered can freely claim Slot A if it is empty, or Slot B if Slot A is occupied but Slot B is empty. Remove or bypass any access-control check, role guard, or whitelist that currently causes new registrations to return an 'unauthorized' error. Only reject a registration attempt when both Slot A and Slot B are already occupied by different principals. An already-registered principal re-submitting their own profile should also be handled gracefully (e.g., return an 'already registered' variant rather than 'unauthorized').",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Fix timetable entry creation — resolve the 'scheduled entries not available in this version' error so both users can add, edit, and delete tasks in their own timetable column.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Add recurring task support for timetable entries: users can optionally mark an entry as a recurring rule stored as a single record with a recurrence pattern (every weekday Mon–Fri, or every weekend Sat–Sun). The timetable view automatically renders it on all matching days without creating duplicate entries.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Extend the timetable entry data model in the backend to support an optional recurrence pattern field. The field must accept one of three values: none (one-time entry), 'weekday' (repeats Mon–Fri), or 'weekend' (repeats Sat–Sun). Store this as a single recurring rule record — do not create separate entries per matching day. The addEntry and updateEntry backend functions must accept and persist this field.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Fix admin reset function: remove principal-based authorization check so any caller who provides the correct passcode '161189' is permitted to reset all data, without being blocked by 'only authorized admins can reset' error.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Rewrite the `adminReset` function in `backend/main.mo` so that authorization is based solely on the passcode string. If the caller provides the correct passcode '161189', the function must clear all registered users, all chat messages, and all timetable entries and return a success result. Remove any principal-based or role-based authorization check that currently causes the function to return 'only authorized admins can reset' even when the correct passcode is supplied.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "CoTimetable",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

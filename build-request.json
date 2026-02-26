@@ -1,0 +1,41 @@
+{
+  "kind": "build_request",
+  "title": "Fix admin reset passcode-only authorization",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-23",
+      "text": "Rewrite the `adminReset` function in `backend/main.mo` so that authorization is based solely on the passcode string. If the caller provides the correct passcode '161189', the function must clear all registered users, all chat messages, and all timetable entries and return a success result. Remove any principal-based or role-based authorization check that currently causes the function to return 'only authorized admins can reset' even when the correct passcode is supplied.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1",
+          "msg-5"
+        ],
+        "quotes": [
+          "After I enter the admin pass code and click reset it shows only authorized admins can reset, and so fix this too please",
+          "fix the backend adminReset function so that any caller who provides the correct passcode 161189 is permitted to reset, removing any extra principal-based authorization check that's blocking it"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Calling `adminReset` with passcode '161189' succeeds and clears all users, messages, and timetable entries regardless of the caller's principal.",
+        "Calling `adminReset` with an incorrect or empty passcode returns an error and does not clear any data.",
+        "No principal whitelist, role guard, or identity check gates the reset — only the passcode is evaluated.",
+        "After a successful reset, the frontend admin panel shows a confirmation message and reloads the app state."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not change any frontend admin panel UI — only fix the backend authorization logic.",
+    "The passcode must remain '161189' exactly."
+  ],
+  "nonGoals": [
+    "Adding new admin panel features.",
+    "Changing the timetable, chat, or registration logic.",
+    "Adding multi-passcode or role-based admin tiers."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}
