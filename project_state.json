@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 27,
+  "projectStateVersion": 31,
   "summary": "A co-related, synchronized timetable web app for exactly two users (User A and User B). Features: onboarding with Display Name + auto-detected/manual timezone selection, polling-based real-time private chat with image/file sharing (up to ~2MB), dual-column timezone-synced timetable (UTC storage, local display conversion, scrollable fixed-height container), Internet Identity authentication, admin reset panel (passcode: 161189) for clearing all data on demand, app-wide ambient music toggle, and a Sky Events Clock screen showing Sky Mean Time (Pacific Time/America/Los_Angeles), user's local time, and live countdown timers for Geyser/Grandma/Turtle events anchored to Pacific Time cycles. Each event lasts 10 minutes (not 7): Geyser starts at cycle_anchor, lasts 10 min; Grandma starts at cycle_anchor + 30 min, lasts 10 min; Turtle starts at cycle_anchor + 40 min. Built with React (Vite), Motoko backend on Internet Computer. App-wide Sky: Children of the Light visual theme with animated landing page sky background (golden-hour sky, drifting clouds, light particles), warm amber/soft indigo/pale gold celestial palette replacing the dark-teal theme across all screens.",
   "architectural_notes": [
     "All timetable events and chat timestamps stored in UTC; frontend converts to viewer's local timezone for display",
@@ -18,7 +18,9 @@
     "Timetable entry creation shows 'scheduled entries not available in this version' — timetable add/edit/delete is broken and needs to be fixed",
     "Admin reset panel returns 'only authorized admins can reset' even when correct passcode 161189 is entered — backend adminReset function has a principal-based auth check blocking valid passcode-only resets",
     "Ambient music mute/unmute button is completely non-functional — no icon toggle and no audio plays when pressed",
-    "'Enter the Sky' button on the landing page is broken — clicking it does nothing and does not navigate into the app or trigger auth/onboarding flow"
+    "'Enter the Sky' button on the landing page is broken — clicking it does nothing and does not navigate into the app or trigger auth/onboarding flow",
+    "Post-auth navigation loop: after Internet Identity sign-in, user is redirected back to the landing page instead of being routed to onboarding or dashboard",
+    "App is stuck on loading spinner and won't open at all — runtime initialization issue in App.tsx, likely auth state check or backend query hanging/erroring on load and blocking the render"
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -219,6 +221,30 @@
       "title": "Fix the 'Enter the Sky' button on the LandingPage (frontend/src/pages/LandingPage.tsx) so that clicking it correctly triggers the Internet Identity authentication flow and/or navigates the user into the app (showing the onboarding modal or dashboard as appropriate). The button must respond to click events and must not silently fail or do nothing.",
       "reqIds": [
         "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-post-authentication-navigation-loop-in-frontend-src-app-tsx-and-frontend-src-pages-landingpage-tsx-after-a-successful-internet-identity-sign-in-the-app-must-not-redirect-the-user-back-to-the-landing-page-instead-it-must-inspect-the-authenticated-identity-state-and-route-the-user-to-a-the-profilesetupmodal-onboarding-flow-if-the-principal-has-no-registered-profile-in-the-backend-or-b-the-dashboard-if-the-principal-is-already-registered-the-landing-page-must-only-be-shown-to-unauthenticated-anonymous-users",
+      "title": "Fix the post-authentication navigation loop in `frontend/src/App.tsx` and `frontend/src/pages/LandingPage.tsx`. After a successful Internet Identity sign-in, the app must NOT redirect the user back to the landing page. Instead, it must inspect the authenticated identity state and route the user to: (a) the ProfileSetupModal/onboarding flow if the principal has no registered profile in the backend, or (b) the Dashboard if the principal is already registered. The landing page must only be shown to unauthenticated (anonymous) users.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-audit-and-fix-frontend-src-app-tsx-so-it-never-gets-stuck-in-an-indefinite-loading-initializing-state-the-initialization-flow-must-complete-and-render-a-visible-ui-within-a-bounded-timeout-regardless-of-backend-query-outcomes-specifically-1-add-a-hard-timeout-e-g-5-seconds-to-the-auth-initialization-check-so-that-if-useinternetidentity-does-not-resolve-the-app-falls-back-to-showing-the-landingpage-rather-than-spinning-forever-2-ensure-the-backend-profile-fetch-query-used-to-decide-whether-to-show-profilesetupmodal-or-dashboard-does-not-block-render-use-react-query-s-isloading-vs-isfetching-states-carefully-and-treat-a-query-error-as-not-registered-rather-than-a-hanging-state-3-ensure-showlanding-is-set-to-true-whenever-the-initialization-phase-ends-without-a-confirmed-authenticated-identity-so-the-landingpage-is-always-shown-as-the-fallback",
+      "title": "Audit and fix `frontend/src/App.tsx` so it never gets stuck in an indefinite loading/initializing state. The initialization flow must complete and render a visible UI within a bounded timeout regardless of backend query outcomes. Specifically: (1) add a hard timeout (e.g., 5 seconds) to the auth initialization check so that if `useInternetIdentity` does not resolve, the app falls back to showing the LandingPage rather than spinning forever; (2) ensure the backend profile-fetch query used to decide whether to show ProfileSetupModal or Dashboard does not block render — use React Query's `isLoading` vs `isFetching` states carefully and treat a query error as 'not registered' rather than a hanging state; (3) ensure `showLanding` is set to `true` whenever the initialization phase ends without a confirmed authenticated identity, so the LandingPage is always shown as the fallback.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-audit-frontend-src-hooks-usequeries-ts-and-any-query-hooks-called-during-app-initialization-to-ensure-they-have-explicit-retry-0-or-low-retry-counts-and-defined-staletime-gctime-so-a-failed-or-slow-backend-call-does-not-cause-react-query-to-silently-retry-and-block-the-ui-indefinitely-on-first-load",
+      "title": "Audit `frontend/src/hooks/useQueries.ts` and any query hooks called during app initialization to ensure they have explicit `retry: 0` or low retry counts and defined `staleTime`/`gcTime` so a failed or slow backend call does not cause React Query to silently retry and block the UI indefinitely on first load.",
+      "reqIds": [
+        "REQ-37"
       ],
       "version": 1
     }

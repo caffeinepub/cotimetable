@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-enter-the-sky-button-on-the-landingpage-frontend-src-pages-landingpage-tsx-so-that-clicking-it-correctly-triggers-the-internet-identity-authentication-flow-and-or-navigates-the-user-into-the-app-showing-the-onboarding-modal-or-dashboard-as-appropriate-the-button-must-respond-to-click-events-and-must-not-silently-fail-or-do-nothing",
-      "featureTitle": "Fix the 'Enter the Sky' button on the LandingPage (frontend/src/pages/LandingPage.tsx) so that clicking it correctly triggers the Internet Identity authentication flow and/or navigates the user into the app (showing the onboarding modal or dashboard as appropriate). The button must respond to click events and must not silently fail or do nothing.",
+      "featureId": "feature-audit-and-fix-frontend-src-app-tsx-so-it-never-gets-stuck-in-an-indefinite-loading-initializing-state-the-initialization-flow-must-complete-and-render-a-visible-ui-within-a-bounded-timeout-regardless-of-backend-query-outcomes-specifically-1-add-a-hard-timeout-e-g-5-seconds-to-the-auth-initialization-check-so-that-if-useinternetidentity-does-not-resolve-the-app-falls-back-to-showing-the-landingpage-rather-than-spinning-forever-2-ensure-the-backend-profile-fetch-query-used-to-decide-whether-to-show-profilesetupmodal-or-dashboard-does-not-block-render-use-react-query-s-isloading-vs-isfetching-states-carefully-and-treat-a-query-error-as-not-registered-rather-than-a-hanging-state-3-ensure-showlanding-is-set-to-true-whenever-the-initialization-phase-ends-without-a-confirmed-authenticated-identity-so-the-landingpage-is-always-shown-as-the-fallback",
+      "featureTitle": "Audit and fix `frontend/src/App.tsx` so it never gets stuck in an indefinite loading/initializing state. The initialization flow must complete and render a visible UI within a bounded timeout regardless of backend query outcomes. Specifically: (1) add a hard timeout (e.g., 5 seconds) to the auth initialization check so that if `useInternetIdentity` does not resolve, the app falls back to showing the LandingPage rather than spinning forever; (2) ensure the backend profile-fetch query used to decide whether to show ProfileSetupModal or Dashboard does not block render — use React Query's `isLoading` vs `isFetching` states carefully and treat a query error as 'not registered' rather than a hanging state; (3) ensure `showLanding` is set to `true` whenever the initialization phase ends without a confirmed authenticated identity, so the LandingPage is always shown as the fallback.",
       "files": [
-        "frontend/src/pages/LandingPage.tsx"
+        "frontend/src/App.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,7 +17,27 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-34"
+        "REQ-36"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-audit-frontend-src-hooks-usequeries-ts-and-any-query-hooks-called-during-app-initialization-to-ensure-they-have-explicit-retry-0-or-low-retry-counts-and-defined-staletime-gctime-so-a-failed-or-slow-backend-call-does-not-cause-react-query-to-silently-retry-and-block-the-ui-indefinitely-on-first-load",
+      "featureTitle": "Audit `frontend/src/hooks/useQueries.ts` and any query hooks called during app initialization to ensure they have explicit `retry: 0` or low retry counts and defined `staleTime`/`gcTime` so a failed or slow backend call does not cause React Query to silently retry and block the UI indefinitely on first load.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-37"
       ],
       "confidence": "high"
     }

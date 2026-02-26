@@ -1,40 +1,56 @@
 {
   "kind": "build_request",
-  "title": "Fix 'Enter the Sky' button on LandingPage",
-  "projectName": "CoTimetable",
+  "title": "Fix app stuck on loading spinner — initialization deadlock",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-34",
-      "text": "Fix the 'Enter the Sky' button on the LandingPage (frontend/src/pages/LandingPage.tsx) so that clicking it correctly triggers the Internet Identity authentication flow and/or navigates the user into the app (showing the onboarding modal or dashboard as appropriate). The button must respond to click events and must not silently fail or do nothing.",
+      "id": "REQ-36",
+      "text": "Audit and fix `frontend/src/App.tsx` so it never gets stuck in an indefinite loading/initializing state. The initialization flow must complete and render a visible UI within a bounded timeout regardless of backend query outcomes. Specifically: (1) add a hard timeout (e.g., 5 seconds) to the auth initialization check so that if `useInternetIdentity` does not resolve, the app falls back to showing the LandingPage rather than spinning forever; (2) ensure the backend profile-fetch query used to decide whether to show ProfileSetupModal or Dashboard does not block render — use React Query's `isLoading` vs `isFetching` states carefully and treat a query error as 'not registered' rather than a hanging state; (3) ensure `showLanding` is set to `true` whenever the initialization phase ends without a confirmed authenticated identity, so the LandingPage is always shown as the fallback.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-5"
+          "msg-4"
         ],
         "quotes": [
-          "once I click the enter the sky button on the landing page I can't enter it does nothing",
-          "fix the 'Enter the Sky' button on the landing page so it correctly triggers the auth/onboarding flow again"
+          "Now it doesnt even open the web app stuck on loading"
         ]
       },
       "acceptanceCriteria": [
-        "Clicking the 'Enter the Sky' button on the LandingPage initiates the Internet Identity login flow or navigates to the dashboard if already authenticated.",
-        "The button click handler is wired correctly and does not silently swallow errors or no-op.",
-        "After successful authentication, the app transitions to the onboarding modal (for new users) or the dashboard (for returning users) as it did before the regression.",
-        "No other screens, components, or features are affected by this fix."
+        "Opening the app always renders a visible UI (LandingPage, Dashboard, or ProfileSetupModal) within 5 seconds, never staying on a blank loading spinner indefinitely.",
+        "If the auth client fails to initialize or times out, the LandingPage is shown to the user.",
+        "If the backend profile query errors or times out, the app treats the user as unregistered and shows ProfileSetupModal (if authenticated) or LandingPage (if not).",
+        "Authenticated users who are already registered are still correctly routed to the Dashboard.",
+        "No regression: the post-auth navigation loop (landing page redirect after sign-in) must remain fixed."
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "text": "Audit `frontend/src/hooks/useQueries.ts` and any query hooks called during app initialization to ensure they have explicit `retry: 0` or low retry counts and defined `staleTime`/`gcTime` so a failed or slow backend call does not cause React Query to silently retry and block the UI indefinitely on first load.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "stuck on loading",
+          "likely a runtime initialization issue in App.tsx, possibly caused by the auth state check or a backend query hanging/erroring on load and blocking the render"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Profile fetch query used during app init has `retry: 0` or `retry: 1` so failures resolve quickly.",
+        "A slow or unreachable backend during initialization does not keep the app on a loading screen for more than 5 seconds.",
+        "Query configuration changes do not break normal profile fetching when the backend is healthy."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files listed in frontend.immutablePaths.",
-    "Do not alter any other screen, feature, or component beyond LandingPage.tsx and its direct button wiring.",
-    "Do not change the backend."
+    "Do not modify any file under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
+    "Do not change the backend schema or Motoko actor."
   ],
   "nonGoals": [
-    "Redesigning the landing page layout or visuals.",
-    "Changing the authentication system or Internet Identity integration.",
-    "Fixing any other known issues beyond the broken 'Enter the Sky' button."
+    "Redesigning the authentication flow beyond fixing the loading deadlock.",
+    "Changes to the LandingPage visual design or animations.",
+    "Any backend logic changes."
   ],
   "imageRequirements": {
     "required": [],

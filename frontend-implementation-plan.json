@@ -1,22 +1,39 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix 'Enter the Sky' button on LandingPage",
+  "title": "Fix app stuck on loading spinner — initialization deadlock",
   "requirements": [
     {
-      "id": "REQ-34",
-      "summary": "Fix the 'Enter the Sky' button on the LandingPage so that clicking it correctly triggers the Internet Identity authentication flow and/or navigates the user into the app (showing the onboarding modal or dashboard as appropriate).",
+      "id": "REQ-36",
+      "summary": "Audit and fix App.tsx initialization flow to prevent indefinite loading state by adding hard timeout, proper error handling, and fallback to LandingPage",
       "acceptanceCriteria": [
-        "Clicking the 'Enter the Sky' button on the LandingPage initiates the Internet Identity login flow or navigates to the dashboard if already authenticated.",
-        "The button click handler is wired correctly and does not silently swallow errors or no-op.",
-        "After successful authentication, the app transitions to the onboarding modal (for new users) or the dashboard (for returning users) as it did before the regression.",
-        "No other screens, components, or features are affected by this fix."
+        "Opening the app always renders a visible UI (LandingPage, Dashboard, or ProfileSetupModal) within 5 seconds, never staying on a blank loading spinner indefinitely.",
+        "If the auth client fails to initialize or times out, the LandingPage is shown to the user.",
+        "If the backend profile query errors or times out, the app treats the user as unregistered and shows ProfileSetupModal (if authenticated) or LandingPage (if not).",
+        "Authenticated users who are already registered are still correctly routed to the Dashboard.",
+        "No regression: the post-auth navigation loop (landing page redirect after sign-in) must remain fixed."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/LandingPage.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Fix the 'Enter the Sky' button click handler to correctly trigger the Internet Identity login flow using the useInternetIdentity hook. Ensure the button has a properly wired onClick handler that calls the login() function from useInternetIdentity and handles errors appropriately. The button should check authentication state and either trigger login for unauthenticated users or allow navigation to the dashboard for authenticated users. Add error logging for any login failures and ensure the button is not disabled or prevented from triggering the authentication flow."
+          "description": "Add a 5-second hard timeout to the authentication initialization phase using useEffect with setTimeout. If useInternetIdentity's loginStatus does not resolve from 'initializing' within the timeout, force-set a local state flag (e.g., initTimedOut) to true. Update the conditional rendering logic so that if initTimedOut is true or loginStatus is 'error', the app immediately shows the LandingPage instead of continuing to render a loading spinner. Ensure the existing showLanding logic (which gates on !identity && loginStatus !== 'initializing') is preserved to avoid reintroducing the post-auth navigation loop. Wrap the profile fetch query's error state so that a query.isError or query.data === null (when authenticated) triggers ProfileSetupModal rather than blocking render. Add fallback branches: if isAuthenticated is true but profile fetch hangs or errors, show ProfileSetupModal; if isAuthenticated is false after timeout, show LandingPage. Do not modify useInternetIdentity or useActor imports."
+        }
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "summary": "Audit useQueries.ts profile fetch hook to add explicit retry and timeout configuration preventing indefinite retries on initialization",
+      "acceptanceCriteria": [
+        "Profile fetch query used during app init has retry: 0 or retry: 1 so failures resolve quickly.",
+        "A slow or unreachable backend during initialization does not keep the app on a loading screen for more than 5 seconds.",
+        "Query configuration changes do not break normal profile fetching when the backend is healthy."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Locate the useGetCallerUserProfile query hook (or any query used during app initialization to fetch the current user's profile). Add or update its React Query configuration to include: retry: 0 (or retry: 1 at most), staleTime: 30000, and gcTime: 60000. This ensures that if the backend is slow or unreachable on first load, the query fails fast rather than silently retrying indefinitely and blocking the UI. Verify that the enabled condition (!!actor && !actorFetching) remains intact so the query does not run before the actor is ready. Do not change the query function logic or the return shape; only adjust the query options object."
         }
       ]
     }

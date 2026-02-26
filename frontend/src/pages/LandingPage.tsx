@@ -1,35 +1,18 @@
 import React from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { LogIn, Clock, MessageSquare, Calendar, Loader2, Star } from 'lucide-react';
 import AnimatedSkyBackground from '../components/AnimatedSkyBackground';
 
 export default function LandingPage() {
-  const { login, clear, loginStatus, identity } = useInternetIdentity();
-  const queryClient = useQueryClient();
+  const { login, loginStatus } = useInternetIdentity();
   const isLoggingIn = loginStatus === 'logging-in';
-  const isAuthenticated = !!identity;
 
   const handleEnter = async () => {
-    if (isAuthenticated) {
-      // Already authenticated — clear and re-login to refresh state
-      await clear();
-      queryClient.clear();
-      setTimeout(() => login(), 300);
-      return;
-    }
     try {
       await login();
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : String(error);
-      if (msg === 'User is already authenticated') {
-        await clear();
-        queryClient.clear();
-        setTimeout(() => login(), 300);
-      } else {
-        console.error('Login error:', error);
-      }
+      console.error('Login error:', error);
     }
   };
 

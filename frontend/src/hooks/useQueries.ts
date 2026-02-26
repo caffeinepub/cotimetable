@@ -42,7 +42,10 @@ export function useGetCallerUserProfile() {
       }
     },
     enabled: !!actor && !actorFetching && !!identity,
-    retry: false,
+    // Fail fast: do not retry on init so a slow/unreachable backend resolves quickly
+    retry: 0,
+    staleTime: 30000,
+    gcTime: 60000,
   });
 
   return {
