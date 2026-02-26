@@ -53,7 +53,6 @@ function shouldShowEntry(entry: TimetableEntry, selectedDate: string, timezone: 
   const rec = entry.recurrence as Recurrence;
 
   if (rec === Recurrence.weekday || rec === Recurrence.weekend) {
-    // Parse selectedDate as local noon to get correct day-of-week
     const dateObj = new Date(selectedDate + 'T12:00:00');
     const dow = dateObj.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
     if (rec === Recurrence.weekday) {
@@ -64,7 +63,6 @@ function shouldShowEntry(entry: TimetableEntry, selectedDate: string, timezone: 
   }
 
   // Recurrence.none — match by stored date
-  // Prefer the entry's day field if set, otherwise derive from startTime
   const entryDay = entry.day && entry.day.length > 0
     ? entry.day
     : getLocalDateString(entry.startTime, timezone);
@@ -81,7 +79,7 @@ interface TaskBlockProps {
   selectedDate: string;
 }
 
-function TaskBlock({ entry, timezone, isOwn, onEdit, onDelete, isDeleting, selectedDate }: TaskBlockProps) {
+function TaskBlock({ entry, timezone, isOwn, onEdit, onDelete, isDeleting }: TaskBlockProps) {
   const startLocal = getLocalHourMinute(entry.startTime, timezone);
   const endLocal = getLocalHourMinute(entry.endTime, timezone);
 
@@ -197,7 +195,6 @@ function TimetableColumn({
   deletingId,
   selectedDate,
 }: TimetableColumnProps) {
-  // Filter entries to only those that should appear on the selected date
   const visibleEntries = entries.filter(e => shouldShowEntry(e, selectedDate, timezone));
 
   return (
@@ -282,7 +279,6 @@ export default function TimetableView({
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Each user only fetches their own entries; partner entries are not accessible via query
   const { data: myEntries = [] } = useGetCallerTimetableEntries();
   const deleteEntry = useDeleteTimetableEntry();
 
@@ -329,8 +325,12 @@ export default function TimetableView({
 
   const isToday = selectedDate === new Date().toLocaleDateString('en-CA', { timeZone: myProfile.timeZone });
 
+  // Suppress unused variable warning — myPrincipal and partnerPrincipal are passed for future use
+  void myPrincipal;
+  void partnerPrincipal;
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Date navigation */}
       <div
         className="flex items-center justify-between px-4 py-3"
@@ -389,8 +389,12 @@ export default function TimetableView({
         </TooltipProvider>
       </div>
 
-      {/* Timetable grid */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
+      {/* Timetable grid — fixed height scrollable container */}
+      <div
+        ref={scrollRef}
+        className="overflow-y-auto scrollbar-thin"
+        style={{ height: '540px' }}
+      >
         <div className="flex">
           {/* Time axis */}
           <div className="w-14 shrink-0 relative" style={{ height: `${HOUR_HEIGHT * 24}px` }}>
@@ -418,28 +422,32 @@ export default function TimetableView({
               deletingId={deletingId}
               selectedDate={selectedDate}
             />
-            {/* Partner column — shows empty grid since we can't fetch partner entries directly */}
-            <TimetableColumn
-              entries={[]}
-              timezone={partnerProfile?.timeZone || myProfile.timeZone}
-              isOwn={false}
-              label={partnerProfile ? `${partnerProfile.displayName}'s Schedule` : "Partner's Schedule"}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              isDeleting={false}
-              deletingId={null}
-              selectedDate={selectedDate}
-            />
+            {partnerProfile && (
+              <TimetableColumn
+                entries={[]}
+                timezone={partnerProfile.timeZone}
+                isOwn={false}
+                label={partnerProfile.displayName}
+                onEdit={() => {}}
+                onDelete={() => {}}
+                isDeleting={false}
+                deletingId={null}
+                selectedDate={selectedDate}
+              />
+            )}
           </div>
         </div>
       </div>
 
-      <AddEditTaskModal
-        open={addModalOpen}
-        onClose={handleCloseModal}
-        userTimezone={myProfile.timeZone}
-        editingEntry={editingEntry}
-      />
+      {/* Add/Edit modal */}
+      {addModalOpen && (
+        <AddEditTaskModal
+          open={addModalOpen}
+          onClose={handleCloseModal}
+          editingEntry={editingEntry}
+          userTimezone={myProfile.timeZone}
+        />
+      )}
     </div>
   );
 }

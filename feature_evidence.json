@@ -1,4 +1,25 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-fix-the-enter-the-sky-button-on-the-landingpage-frontend-src-pages-landingpage-tsx-so-that-clicking-it-correctly-triggers-the-internet-identity-authentication-flow-and-or-navigates-the-user-into-the-app-showing-the-onboarding-modal-or-dashboard-as-appropriate-the-button-must-respond-to-click-events-and-must-not-silently-fail-or-do-nothing",
+      "featureTitle": "Fix the 'Enter the Sky' button on the LandingPage (frontend/src/pages/LandingPage.tsx) so that clicking it correctly triggers the Internet Identity authentication flow and/or navigates the user into the app (showing the onboarding modal or dashboard as appropriate). The button must respond to click events and must not silently fail or do nothing.",
+      "files": [
+        "frontend/src/pages/LandingPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-34"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

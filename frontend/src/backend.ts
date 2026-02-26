@@ -168,6 +168,7 @@ export interface backendInterface {
     resetSystem(passcode: string): Promise<boolean>;
     saveCallerUserProfile(displayName: string, timeZone: string): Promise<void>;
     sendMessage(content: string, file: ExternalBlob | null, fileName: string | null, mimeType: string | null): Promise<void>;
+    updateDisplayName(newDisplayName: string): Promise<void>;
     updateTimetableEntry(entryId: bigint, updatedInput: TimetableEntryInput): Promise<TimetableEntry>;
 }
 import type { ExternalBlob as _ExternalBlob, Message as _Message, Recurrence as _Recurrence, RegisterResult as _RegisterResult, Time as _Time, TimetableEntry as _TimetableEntry, TimetableEntryInput as _TimetableEntryInput, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
@@ -464,6 +465,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.sendMessage(arg0, await to_candid_opt_n30(this._uploadFile, this._downloadFile, arg1), to_candid_opt_n32(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n32(this._uploadFile, this._downloadFile, arg3));
+            return result;
+        }
+    }
+    async updateDisplayName(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateDisplayName(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateDisplayName(arg0);
             return result;
         }
     }

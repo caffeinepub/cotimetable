@@ -121,6 +121,7 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'updateDisplayName' : IDL.Func([IDL.Text], [], []),
   'updateTimetableEntry' : IDL.Func(
       [IDL.Nat, TimetableEntryInput],
       [TimetableEntry],
@@ -244,6 +245,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'updateDisplayName' : IDL.Func([IDL.Text], [], []),
     'updateTimetableEntry' : IDL.Func(
         [IDL.Nat, TimetableEntryInput],
         [TimetableEntry],

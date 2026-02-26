@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 17,
-  "summary": "A co-related, synchronized timetable web app for exactly two users (User A and User B). Features: onboarding with Display Name + auto-detected/manual timezone selection, polling-based real-time private chat with image/file sharing (up to ~2MB), dual-column timezone-synced timetable (UTC storage, local display conversion), Internet Identity authentication, admin reset panel (passcode: 161189) for clearing all data on demand, and app-wide ambient music toggle. Built with React (Vite), Motoko backend on Internet Computer. App-wide Sky: Children of the Light visual theme with animated landing page sky background (golden-hour sky, drifting clouds, light particles), warm amber/soft indigo/pale gold celestial palette replacing the dark-teal theme across all screens.",
+  "projectStateVersion": 27,
+  "summary": "A co-related, synchronized timetable web app for exactly two users (User A and User B). Features: onboarding with Display Name + auto-detected/manual timezone selection, polling-based real-time private chat with image/file sharing (up to ~2MB), dual-column timezone-synced timetable (UTC storage, local display conversion, scrollable fixed-height container), Internet Identity authentication, admin reset panel (passcode: 161189) for clearing all data on demand, app-wide ambient music toggle, and a Sky Events Clock screen showing Sky Mean Time (Pacific Time/America/Los_Angeles), user's local time, and live countdown timers for Geyser/Grandma/Turtle events anchored to Pacific Time cycles. Each event lasts 10 minutes (not 7): Geyser starts at cycle_anchor, lasts 10 min; Grandma starts at cycle_anchor + 30 min, lasts 10 min; Turtle starts at cycle_anchor + 40 min. Built with React (Vite), Motoko backend on Internet Computer. App-wide Sky: Children of the Light visual theme with animated landing page sky background (golden-hour sky, drifting clouds, light particles), warm amber/soft indigo/pale gold celestial palette replacing the dark-teal theme across all screens.",
   "architectural_notes": [
     "All timetable events and chat timestamps stored in UTC; frontend converts to viewer's local timezone for display",
     "Real-time sync via periodic polling (no WebSockets); chat and timetable refresh every few seconds",
@@ -10,12 +10,15 @@
     "Timezone handling via browser Intl API and date-fns-tz",
     "File/media sharing capped at ~2MB due to canister storage constraints",
     "Admin reset function protected by passcode 161189; clears all users, messages, and timetable events on demand from within the app",
-    "Recurring timetable tasks stored as a single recurring rule record (not duplicated per day); rendered on matching days by the frontend"
+    "Recurring timetable tasks stored as a single recurring rule record (not duplicated per day); rendered on matching days by the frontend",
+    "Sky Events: each event duration is 10 minutes — Geyser at cycle_anchor, Grandma at cycle_anchor+30min, Turtle at cycle_anchor+40min (cycles every 2 hours anchored to 00:05 Pacific Time)"
   ],
   "known_issues": [
     "Backend registration rejects new users as 'unauthorized' — registration must allow any unregistered principal to freely claim Slot A or B without admin approval; only block a third user once both slots are filled",
     "Timetable entry creation shows 'scheduled entries not available in this version' — timetable add/edit/delete is broken and needs to be fixed",
-    "Admin reset panel returns 'only authorized admins can reset' even when correct passcode 161189 is entered — backend adminReset function has a principal-based auth check blocking valid passcode-only resets"
+    "Admin reset panel returns 'only authorized admins can reset' even when correct passcode 161189 is entered — backend adminReset function has a principal-based auth check blocking valid passcode-only resets",
+    "Ambient music mute/unmute button is completely non-functional — no icon toggle and no audio plays when pressed",
+    "'Enter the Sky' button on the landing page is broken — clicking it does nothing and does not navigate into the app or trigger auth/onboarding flow"
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -136,6 +139,86 @@
       "title": "Update the TimetableView frontend component to render recurring timetable entries on all matching days. When the currently viewed day matches the recurrence pattern of an entry (weekday Mon–Fri or weekend Sat–Sun), the entry must appear in the timetable grid for that day as a positioned task block. On days that do not match the recurrence pattern, the entry must not appear. One-time entries continue to appear only on their specific date.",
       "reqIds": [
         "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-editable-display-name-ui-to-the-dashboard-show-the-current-user-s-display-name-with-an-inline-edit-control-e-g-pencil-icon-or-edit-name-button-when-activated-display-a-small-input-field-pre-filled-with-the-current-name-and-a-save-button-on-save-call-the-updatedisplayname-backend-function-via-a-react-query-mutation-invalidate-the-profile-query-and-reflect-the-updated-name-everywhere-it-appears-in-the-app-clock-cards-chat-timetable-columns-without-a-full-page-reload",
+      "title": "Add an editable display name UI to the Dashboard. Show the current user's display name with an inline edit control (e.g., pencil icon or 'Edit Name' button). When activated, display a small input field pre-filled with the current name and a Save button. On save, call the `updateDisplayName` backend function via a React Query mutation, invalidate the profile query, and reflect the updated name everywhere it appears in the app (clock cards, chat, timetable columns) without a full page reload.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-completely-overhaul-the-ambient-music-system-in-frontend-src-hooks-useambientmusic-ts-the-hook-must-1-create-a-single-audio-element-pointed-at-the-ambient-track-source-2-set-it-to-loop-3-attempt-autoplay-on-mount-and-handle-browser-autoplay-restrictions-gracefully-start-muted-if-blocked-unmute-on-first-user-interaction-4-expose-a-ismuted-boolean-and-a-toggle-function-that-correctly-calls-audio-play-or-audio-pause-and-flips-the-muted-state-and-5-persist-the-muted-unmuted-preference-to-sessionstorage-so-it-survives-navigation-the-musictogglebutton-component-must-reflect-the-correct-icon-state-music-on-vs-music-off-based-on-ismuted",
+      "title": "Completely overhaul the ambient music system in `frontend/src/hooks/useAmbientMusic.ts`. The hook must: (1) create a single Audio element pointed at the ambient track source, (2) set it to loop, (3) attempt autoplay on mount and handle browser autoplay restrictions gracefully (start muted if blocked, unmute on first user interaction), (4) expose a `isMuted` boolean and a `toggle` function that correctly calls `audio.play()` or `audio.pause()` and flips the muted state, and (5) persist the muted/unmuted preference to sessionStorage so it survives navigation. The `MusicToggleButton` component must reflect the correct icon state (music-on vs music-off) based on `isMuted`.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-skyeventsscreen-frontend-page-component-that-displays-real-time-countdown-timers-for-three-recurring-sky-children-of-the-light-events-all-three-events-cycle-every-2-hours-anchored-to-00-05-utc-for-geyser-use-the-following-schedule-per-2-hour-cycle-geyser-starts-at-cycle-anchor-00-05-02-05-04-05-utc-and-lasts-7-minutes-grandma-starts-20-minutes-after-geyser-ends-i-e-cycle-anchor-27-minutes-turtle-starts-5-minutes-after-grandma-ends-i-e-cycle-anchor-32-minutes-assuming-grandma-lasts-a-similar-duration-use-7-minutes-for-grandma-too-making-turtle-start-at-cycle-anchor-34-minutes-each-event-card-must-show-the-event-name-a-live-countdown-hh-mm-ss-to-the-next-occurrence-updating-every-second-and-the-utc-time-of-the-next-occurrence-style-the-screen-using-the-existing-sky-cotl-celestial-theme-amber-gold-indigo-palette-glass-card-style-glows-consistent-with-the-rest-of-the-app",
+      "title": "Create a new SkyEventsScreen frontend page/component that displays real-time countdown timers for three recurring Sky: Children of the Light events. All three events cycle every 2 hours anchored to 00:05 UTC for Geyser. Use the following schedule per 2-hour cycle: Geyser starts at cycle_anchor (00:05, 02:05, 04:05, ... UTC) and lasts 7 minutes; Grandma starts 20 minutes after Geyser ends (i.e., cycle_anchor + 27 minutes); Turtle starts 5 minutes after Grandma ends (i.e., cycle_anchor + 32 minutes, assuming Grandma lasts a similar duration — use 7 minutes for Grandma too, making Turtle start at cycle_anchor + 34 minutes). Each event card must show: the event name, a live countdown (HH:MM:SS) to the next occurrence updating every second, and the UTC time of the next occurrence. Style the screen using the existing Sky: CotL celestial theme (amber/gold/indigo palette, glass card style, glows) consistent with the rest of the app.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-navigation-button-labeled-sky-events-or-an-appropriate-celestial-icon-label-to-the-dashboard-navigation-area-positioned-immediately-before-the-existing-timetable-navigation-button-clicking-this-button-navigates-to-or-reveals-the-skyeventsscreen-component",
+      "title": "Add a navigation button labeled 'Sky Events' (or an appropriate celestial icon + label) to the Dashboard navigation area, positioned immediately before the existing timetable navigation button. Clicking this button navigates to or reveals the SkyEventsScreen component.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-timetableview-component-render-inside-a-fixed-height-scrollable-container-the-container-height-should-be-approximately-500-600px-large-enough-to-comfortably-show-several-hours-of-the-24-hour-grid-without-being-cramped-with-overflow-y-auto-so-the-user-can-scroll-to-see-the-full-day-the-timetable-grid-itself-retains-its-full-24-hour-height-internally-only-the-outer-container-is-capped-and-scrollable",
+      "title": "Make the TimetableView component render inside a fixed-height scrollable container. The container height should be approximately 500–600px (large enough to comfortably show several hours of the 24-hour grid without being cramped) with overflow-y: auto so the user can scroll to see the full day. The timetable grid itself retains its full 24-hour height internally; only the outer container is capped and scrollable.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-overhaul-the-ambient-music-system-in-frontend-src-hooks-useambientmusic-ts-to-fix-the-non-functional-mute-unmute-toggle-the-hook-must-1-maintain-a-single-shared-audio-element-singleton-pattern-pointed-at-the-ambient-track-source-and-set-to-loop-2-on-mount-attempt-autoplay-if-the-browser-blocks-autoplay-start-in-a-paused-muted-state-and-attempt-to-play-on-the-first-user-interaction-with-the-document-3-expose-an-ismuted-boolean-that-reflects-whether-audio-is-currently-paused-muted-4-expose-a-toggle-function-that-calls-audio-play-when-currently-paused-and-audio-pause-when-currently-playing-then-flips-ismuted-5-persist-the-muted-unmuted-state-to-sessionstorage-so-it-survives-in-session-navigation-update-musictogglebutton-to-correctly-show-a-music-on-icon-when-ismuted-is-false-and-a-music-off-icon-when-ismuted-is-true",
+      "title": "Overhaul the ambient music system in `frontend/src/hooks/useAmbientMusic.ts` to fix the non-functional mute/unmute toggle. The hook must: (1) maintain a single shared Audio element (singleton pattern) pointed at the ambient track source and set to loop; (2) on mount, attempt autoplay — if the browser blocks autoplay, start in a paused/muted state and attempt to play on the first user interaction with the document; (3) expose an `isMuted` boolean that reflects whether audio is currently paused/muted; (4) expose a `toggle` function that calls `audio.play()` when currently paused and `audio.pause()` when currently playing, then flips `isMuted`; (5) persist the muted/unmuted state to sessionStorage so it survives in-session navigation. Update `MusicToggleButton` to correctly show a music-on icon when `isMuted` is false and a music-off icon when `isMuted` is true.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-overhaul-the-skyeventsscreen-page-frontend-src-pages-skyeventsscreen-tsx-layout-to-display-from-top-to-bottom-1-a-large-live-sky-mean-time-clock-showing-the-current-time-in-america-los-angeles-pacific-time-respecting-dst-2-a-prominent-live-local-time-clock-showing-the-user-s-local-time-3-an-events-table-with-three-columns-event-name-next-event-next-occurrence-time-displayed-in-the-user-s-local-timezone-and-time-to-next-live-hh-mm-ss-countdown-the-table-must-list-exactly-three-events-grandma-turtle-and-geyser-in-that-display-order-no-dreams-skater-row-the-existing-sky-cotl-visual-styling-amber-gold-indigo-palette-glass-card-style-glows-must-be-preserved-only-the-data-layout-and-content-change",
+      "title": "Overhaul the SkyEventsScreen page (frontend/src/pages/SkyEventsScreen.tsx) layout to display, from top to bottom: (1) a large live 'Sky Mean Time' clock showing the current time in America/Los_Angeles (Pacific Time, respecting DST); (2) a prominent live 'Local Time' clock showing the user's local time; (3) an events table with three columns — 'Event Name', 'Next Event' (next occurrence time displayed in the user's local timezone), and 'Time to Next' (live HH:MM:SS countdown). The table must list exactly three events: Grandma, Turtle, and Geyser (in that display order, no Dreams Skater row). The existing Sky: CotL visual styling (amber/gold/indigo palette, glass card style, glows) must be preserved — only the data layout and content change.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-rewrite-the-useskyeventcountdown-hook-frontend-src-hooks-useskyeventcountdown-ts-to-anchor-all-event-cycle-calculations-to-america-los-angeles-pacific-time-instead-of-utc-offsets-each-2-hour-cycle-must-be-anchored-to-the-equivalent-of-00-05-pacific-time-within-each-cycle-geyser-starts-at-cycle-anchor-lasts-7-min-grandma-starts-at-cycle-anchor-27-min-lasts-7-min-turtle-starts-at-cycle-anchor-34-min-the-hook-must-return-for-each-event-the-next-occurrence-as-a-date-object-for-local-time-display-and-the-seconds-remaining-until-that-occurrence-for-the-hh-mm-ss-countdown-update-every-second-via-setinterval",
+      "title": "Rewrite the useSkyEventCountdown hook (frontend/src/hooks/useSkyEventCountdown.ts) to anchor all event cycle calculations to America/Los_Angeles (Pacific Time) instead of UTC offsets. Each 2-hour cycle must be anchored to the equivalent of 00:05 Pacific Time. Within each cycle: Geyser starts at cycle_anchor (lasts 7 min); Grandma starts at cycle_anchor + 27 min (lasts 7 min); Turtle starts at cycle_anchor + 34 min. The hook must return, for each event: the next occurrence as a Date object (for local-time display) and the seconds remaining until that occurrence (for the HH:MM:SS countdown). Update every second via setInterval.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-useskyeventcountdown-hook-in-frontend-src-hooks-useskyeventcountdown-ts-so-that-each-sky-children-of-the-light-event-lasts-10-minutes-instead-of-7-the-updated-cycle-schedule-per-2-hour-block-anchored-to-00-05-pacific-time-must-be-geyser-starts-at-cycle-anchor-and-lasts-10-minutes-grandma-starts-at-cycle-anchor-30-minutes-and-lasts-10-minutes-turtle-starts-at-cycle-anchor-40-minutes-all-other-logic-pacific-time-anchoring-per-event-next-occurrence-date-object-seconds-remaining-countdown-1-second-setinterval-updates-must-remain-unchanged",
+      "title": "Update the `useSkyEventCountdown` hook in `frontend/src/hooks/useSkyEventCountdown.ts` so that each Sky: Children of the Light event lasts 10 minutes instead of 7. The updated cycle schedule per 2-hour block anchored to 00:05 Pacific Time must be: Geyser starts at cycle_anchor and lasts 10 minutes; Grandma starts at cycle_anchor + 30 minutes and lasts 10 minutes; Turtle starts at cycle_anchor + 40 minutes. All other logic (Pacific Time anchoring, per-event next-occurrence Date object, seconds-remaining countdown, 1-second setInterval updates) must remain unchanged.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-enter-the-sky-button-on-the-landingpage-frontend-src-pages-landingpage-tsx-so-that-clicking-it-correctly-triggers-the-internet-identity-authentication-flow-and-or-navigates-the-user-into-the-app-showing-the-onboarding-modal-or-dashboard-as-appropriate-the-button-must-respond-to-click-events-and-must-not-silently-fail-or-do-nothing",
+      "title": "Fix the 'Enter the Sky' button on the LandingPage (frontend/src/pages/LandingPage.tsx) so that clicking it correctly triggers the Internet Identity authentication flow and/or navigates the user into the app (showing the onboarding modal or dashboard as appropriate). The button must respond to click events and must not silently fail or do nothing.",
+      "reqIds": [
+        "REQ-34"
       ],
       "version": 1
     }
@@ -263,6 +346,44 @@
       "reqIds": [
         "REQ-23"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Allow users to edit/update their display name at any time from the dashboard or profile settings, saved to the backend and reflected everywhere in the app.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Fix the ambient music mute/unmute toggle button — it is completely non-functional (no icon toggle, no audio plays). Overhaul the audio system so the button correctly toggles its icon and ambient audio plays/pauses on each press.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Add a backend `updateDisplayName` function that accepts a new display name string from any authenticated, already-registered principal and updates that user's stored profile. The function must reject calls from unregistered or anonymous principals.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Add a Sky Events Clock screen accessible via a new button placed right before the timetable button. The screen shows real-time countdown timers for three recurring Sky: CotL events that cycle every 2 hours: Geyser (starts 00:05 UTC), Grandma (starts 20 mins after each Geyser ends), and Turtle (starts 5 mins after each Grandma ends). Each timer displays time until the next occurrence, updating live.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Make the timetable view scrollable with a fixed-height container so it takes less vertical space on screen without being too cramped or hard to read.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Overhaul Sky Events screen: show (1) Sky Mean Time = Pacific Time (America/Los_Angeles) as a live clock, (2) user's local time as a live clock, (3) events table with Grandma/Turtle/Geyser showing next occurrence in user's local time and live HH:MM:SS countdown. All event schedules anchored to Pacific Time. Remove Dreams Skater. Keep existing visual styling.",
+      "reqIds": [],
       "status": "pending"
     }
   ],

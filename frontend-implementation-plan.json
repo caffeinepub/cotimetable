@@ -1,6 +1,24 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix admin reset passcode-only authorization",
-  "requirements": []
+  "title": "Fix 'Enter the Sky' button on LandingPage",
+  "requirements": [
+    {
+      "id": "REQ-34",
+      "summary": "Fix the 'Enter the Sky' button on the LandingPage so that clicking it correctly triggers the Internet Identity authentication flow and/or navigates the user into the app (showing the onboarding modal or dashboard as appropriate).",
+      "acceptanceCriteria": [
+        "Clicking the 'Enter the Sky' button on the LandingPage initiates the Internet Identity login flow or navigates to the dashboard if already authenticated.",
+        "The button click handler is wired correctly and does not silently swallow errors or no-op.",
+        "After successful authentication, the app transitions to the onboarding modal (for new users) or the dashboard (for returning users) as it did before the regression.",
+        "No other screens, components, or features are affected by this fix."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/LandingPage.tsx",
+          "operation": "modify",
+          "description": "Fix the 'Enter the Sky' button click handler to correctly trigger the Internet Identity login flow using the useInternetIdentity hook. Ensure the button has a properly wired onClick handler that calls the login() function from useInternetIdentity and handles errors appropriately. The button should check authentication state and either trigger login for unauthenticated users or allow navigation to the dashboard for authenticated users. Add error logging for any login failures and ensure the button is not disabled or prevented from triggering the authentication flow."
+        }
+      ]
+    }
+  ]
 }

@@ -1,12 +1,37 @@
 import React from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { LogIn, Clock, MessageSquare, Calendar, Loader2, Star } from 'lucide-react';
 import AnimatedSkyBackground from '../components/AnimatedSkyBackground';
 
 export default function LandingPage() {
-  const { login, loginStatus } = useInternetIdentity();
+  const { login, clear, loginStatus, identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
   const isLoggingIn = loginStatus === 'logging-in';
+  const isAuthenticated = !!identity;
+
+  const handleEnter = async () => {
+    if (isAuthenticated) {
+      // Already authenticated — clear and re-login to refresh state
+      await clear();
+      queryClient.clear();
+      setTimeout(() => login(), 300);
+      return;
+    }
+    try {
+      await login();
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg === 'User is already authenticated') {
+        await clear();
+        queryClient.clear();
+        setTimeout(() => login(), 300);
+      } else {
+        console.error('Login error:', error);
+      }
+    }
+  };
 
   return (
     <div className="flex-1 flex flex-col relative">
@@ -54,7 +79,7 @@ export default function LandingPage() {
         </p>
 
         <Button
-          onClick={login}
+          onClick={handleEnter}
           disabled={isLoggingIn}
           size="lg"
           className="font-semibold px-10 py-3 gap-2 text-base rounded-full shadow-amber transition-all duration-300 hover:scale-105"

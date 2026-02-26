@@ -5,6 +5,7 @@ import { useGetAllUserProfiles } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import type { UserProfile } from '../backend';
 import { Skeleton } from '@/components/ui/skeleton';
+import EditableDisplayName from './EditableDisplayName';
 
 interface UserClockCardProps {
   profile: UserProfile;
@@ -59,9 +60,16 @@ function UserClockCard({ profile, isMe }: UserClockCardProps) {
           style={{ color: isMe ? 'oklch(0.76 0.14 65)' : 'oklch(0.62 0.18 285)' }}
         />
       </div>
-      <p className="font-display font-semibold text-foreground text-base truncate">
-        {profile.displayName}
-      </p>
+
+      {/* Display name — editable for "me", static for partner */}
+      {isMe ? (
+        <EditableDisplayName currentName={profile.displayName} />
+      ) : (
+        <p className="font-display font-semibold text-foreground text-base truncate">
+          {profile.displayName}
+        </p>
+      )}
+
       <p
         className="font-display font-bold text-2xl mt-1"
         style={{ color: isMe ? 'oklch(0.76 0.14 65)' : 'oklch(0.84 0.14 88)' }}

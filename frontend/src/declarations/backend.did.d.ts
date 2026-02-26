@@ -96,6 +96,7 @@ export interface _SERVICE {
     [string, [] | [ExternalBlob], [] | [string], [] | [string]],
     undefined
   >,
+  'updateDisplayName' : ActorMethod<[string], undefined>,
   'updateTimetableEntry' : ActorMethod<
     [bigint, TimetableEntryInput],
     TimetableEntry

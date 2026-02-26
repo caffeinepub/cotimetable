@@ -75,5 +75,6 @@ export interface backendInterface {
     resetSystem(passcode: string): Promise<boolean>;
     saveCallerUserProfile(displayName: string, timeZone: string): Promise<void>;
     sendMessage(content: string, file: ExternalBlob | null, fileName: string | null, mimeType: string | null): Promise<void>;
+    updateDisplayName(newDisplayName: string): Promise<void>;
     updateTimetableEntry(entryId: bigint, updatedInput: TimetableEntryInput): Promise<TimetableEntry>;
 }

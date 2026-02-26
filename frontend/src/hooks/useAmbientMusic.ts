@@ -1,63 +1,105 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-// Module-level singleton so the audio persists across re-renders and route changes
+// ─── Module-level singleton state ─────────────────────────────────────────────
+// We keep both the Audio element and the muted state at module level so that
+// all hook instances share the same source of truth across re-renders and
+// route changes.
+
 let audioInstance: HTMLAudioElement | null = null;
+let globalIsMuted = true; // start muted until user explicitly unmutes
 
-function getAudioInstance(): HTMLAudioElement {
+// Listeners so every hook instance re-renders when state changes
+const listeners = new Set<(muted: boolean) => void>();
+
+function notifyListeners(muted: boolean) {
+  listeners.forEach((fn) => fn(muted));
+}
+
+function getAudio(): HTMLAudioElement {
   if (!audioInstance) {
     audioInstance = new Audio('/assets/ambient-music.mp3');
     audioInstance.loop = true;
     audioInstance.volume = 0.35;
+    // Sync globalIsMuted with actual audio state on any external pause
+    audioInstance.addEventListener('pause', () => {
+      if (!globalIsMuted) {
+        globalIsMuted = true;
+        sessionStorage.setItem('ambientMusicMuted', 'true');
+        notifyListeners(true);
+      }
+    });
+    audioInstance.addEventListener('play', () => {
+      if (globalIsMuted) {
+        globalIsMuted = false;
+        sessionStorage.setItem('ambientMusicMuted', 'false');
+        notifyListeners(false);
+      }
+    });
   }
   return audioInstance;
 }
 
-export function useAmbientMusic() {
-  const [isPlaying, setIsPlaying] = useState<boolean>(() => {
-    const stored = sessionStorage.getItem('ambientMusicPlaying');
-    return stored === null ? false : stored === 'true';
-  });
-  const audioRef = useRef<HTMLAudioElement>(getAudioInstance());
+// Restore persisted preference once (module-level, runs once on first import)
+try {
+  const storedMuted = sessionStorage.getItem('ambientMusicMuted');
+  if (storedMuted !== null) {
+    globalIsMuted = storedMuted === 'true';
+  }
+} catch {
+  // sessionStorage not available
+}
 
-  // Sync audio state on mount
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
+export function useAmbientMusic() {
+  const [isMuted, setIsMuted] = useState<boolean>(globalIsMuted);
+
+  // Subscribe to global state changes
   useEffect(() => {
-    const audio = audioRef.current;
-    if (isPlaying) {
+    const handler = (muted: boolean) => setIsMuted(muted);
+    listeners.add(handler);
+    // Sync with current global state on mount
+    setIsMuted(globalIsMuted);
+    return () => {
+      listeners.delete(handler);
+    };
+  }, []);
+
+  // On mount: if the user previously had music playing, attempt autoplay
+  useEffect(() => {
+    if (!globalIsMuted) {
+      const audio = getAudio();
       audio.play().catch(() => {
-        // Autoplay blocked by browser — silently fail and update state
-        setIsPlaying(false);
-        sessionStorage.setItem('ambientMusicPlaying', 'false');
+        // Browser blocked autoplay — stay muted until user interacts
+        globalIsMuted = true;
+        try { sessionStorage.setItem('ambientMusicMuted', 'true'); } catch { /* noop */ }
+        notifyListeners(true);
       });
-    } else {
-      audio.pause();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const play = useCallback(() => {
-    const audio = audioRef.current;
-    audio.play().then(() => {
-      setIsPlaying(true);
-      sessionStorage.setItem('ambientMusicPlaying', 'true');
-    }).catch(() => {
-      setIsPlaying(false);
-      sessionStorage.setItem('ambientMusicPlaying', 'false');
-    });
-  }, []);
-
-  const pause = useCallback(() => {
-    const audio = audioRef.current;
-    audio.pause();
-    setIsPlaying(false);
-    sessionStorage.setItem('ambientMusicPlaying', 'false');
-  }, []);
-
   const toggle = useCallback(() => {
-    if (isPlaying) {
-      pause();
+    const audio = getAudio();
+    if (globalIsMuted) {
+      // Currently muted → play
+      audio.play().then(() => {
+        globalIsMuted = false;
+        try { sessionStorage.setItem('ambientMusicMuted', 'false'); } catch { /* noop */ }
+        notifyListeners(false);
+      }).catch(() => {
+        // Still blocked — keep muted
+        globalIsMuted = true;
+        try { sessionStorage.setItem('ambientMusicMuted', 'true'); } catch { /* noop */ }
+        notifyListeners(true);
+      });
     } else {
-      play();
+      // Currently playing → pause
+      audio.pause();
+      globalIsMuted = true;
+      try { sessionStorage.setItem('ambientMusicMuted', 'true'); } catch { /* noop */ }
+      notifyListeners(true);
     }
-  }, [isPlaying, play, pause]);
+  }, []);
 
-  return { isPlaying, play, pause, toggle };
+  return { isMuted, toggle };
 }

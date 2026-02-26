@@ -14,6 +14,8 @@ import Storage "blob-storage/Storage";
 
 import Nat "mo:core/Nat";
 
+
+
 actor {
   include MixinStorage();
 
@@ -153,6 +155,27 @@ actor {
         };
       };
       case (null) { null };
+    };
+  };
+
+  public shared ({ caller }) func updateDisplayName(newDisplayName : Text) : async () {
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can update their display name");
+    };
+    if (newDisplayName.size() == 0 or newDisplayName.size() > 30) {
+      Runtime.trap("Display name must be between 1 and 30 characters");
+    };
+
+    switch (userProfiles.get(caller)) {
+      case (null) { Runtime.trap("User profile not found; please register first") };
+      case (?existing) {
+        let updated : UserProfileInternal = {
+          principal = existing.principal;
+          displayName = newDisplayName;
+          timeZone = existing.timeZone;
+        };
+        userProfiles.add(caller, updated);
+      };
     };
   };
 
@@ -324,3 +347,4 @@ actor {
     };
   };
 };
+

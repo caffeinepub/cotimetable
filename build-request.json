@@ -1,38 +1,40 @@
 {
   "kind": "build_request",
-  "title": "Fix admin reset passcode-only authorization",
+  "title": "Fix 'Enter the Sky' button on LandingPage",
+  "projectName": "CoTimetable",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-23",
-      "text": "Rewrite the `adminReset` function in `backend/main.mo` so that authorization is based solely on the passcode string. If the caller provides the correct passcode '161189', the function must clear all registered users, all chat messages, and all timetable entries and return a success result. Remove any principal-based or role-based authorization check that currently causes the function to return 'only authorized admins can reset' even when the correct passcode is supplied.",
-      "target": "backend",
+      "id": "REQ-34",
+      "text": "Fix the 'Enter the Sky' button on the LandingPage (frontend/src/pages/LandingPage.tsx) so that clicking it correctly triggers the Internet Identity authentication flow and/or navigates the user into the app (showing the onboarding modal or dashboard as appropriate). The button must respond to click events and must not silently fail or do nothing.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1",
+          "msg-4",
           "msg-5"
         ],
         "quotes": [
-          "After I enter the admin pass code and click reset it shows only authorized admins can reset, and so fix this too please",
-          "fix the backend adminReset function so that any caller who provides the correct passcode 161189 is permitted to reset, removing any extra principal-based authorization check that's blocking it"
+          "once I click the enter the sky button on the landing page I can't enter it does nothing",
+          "fix the 'Enter the Sky' button on the landing page so it correctly triggers the auth/onboarding flow again"
         ]
       },
       "acceptanceCriteria": [
-        "Calling `adminReset` with passcode '161189' succeeds and clears all users, messages, and timetable entries regardless of the caller's principal.",
-        "Calling `adminReset` with an incorrect or empty passcode returns an error and does not clear any data.",
-        "No principal whitelist, role guard, or identity check gates the reset — only the passcode is evaluated.",
-        "After a successful reset, the frontend admin panel shows a confirmation message and reloads the app state."
+        "Clicking the 'Enter the Sky' button on the LandingPage initiates the Internet Identity login flow or navigates to the dashboard if already authenticated.",
+        "The button click handler is wired correctly and does not silently swallow errors or no-op.",
+        "After successful authentication, the app transitions to the onboarding modal (for new users) or the dashboard (for returning users) as it did before the regression.",
+        "No other screens, components, or features are affected by this fix."
       ]
     }
   ],
   "constraints": [
-    "Do not change any frontend admin panel UI — only fix the backend authorization logic.",
-    "The passcode must remain '161189' exactly."
+    "Do not modify any files listed in frontend.immutablePaths.",
+    "Do not alter any other screen, feature, or component beyond LandingPage.tsx and its direct button wiring.",
+    "Do not change the backend."
   ],
   "nonGoals": [
-    "Adding new admin panel features.",
-    "Changing the timetable, chat, or registration logic.",
-    "Adding multi-passcode or role-based admin tiers."
+    "Redesigning the landing page layout or visuals.",
+    "Changing the authentication system or Internet Identity integration.",
+    "Fixing any other known issues beyond the broken 'Enter the Sky' button."
   ],
   "imageRequirements": {
     "required": [],

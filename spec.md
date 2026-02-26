@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the `adminReset` backend function so that authorization is based solely on the passcode string, removing any principal-based or role-based checks that block the reset.
+**Goal:** Fix the broken "Enter the Sky" button on the LandingPage so it correctly triggers the authentication and onboarding flow.
 
 **Planned changes:**
-- Rewrite `adminReset` in `backend/main.mo` to authorize based only on the passcode `'161189'`, removing any principal whitelist or role guard.
-- If the correct passcode is provided, clear all registered users, chat messages, and timetable entries and return a success result.
-- If an incorrect or empty passcode is provided, return an error without clearing any data.
+- Wire the "Enter the Sky" button click handler in `LandingPage.tsx` to properly initiate the Internet Identity login flow
+- Ensure that after successful authentication, the app transitions to the onboarding modal (new users) or dashboard (returning users)
+- Ensure errors are not silently swallowed
 
-**User-visible outcome:** An admin who enters the correct passcode `161189` in the admin panel can successfully reset all data without receiving an "only authorized admins can reset" error.
+**User-visible outcome:** Clicking "Enter the Sky" on the landing page launches the login flow and takes the user into the app as expected.

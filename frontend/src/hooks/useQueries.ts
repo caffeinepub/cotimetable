@@ -119,6 +119,25 @@ export function useGetAllUserProfiles() {
   });
 }
 
+export function useUpdateDisplayName() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newDisplayName: string): Promise<void> => {
+      if (!actor) throw new Error('Actor not available');
+      if (!newDisplayName.trim() || newDisplayName.trim().length > 30) {
+        throw new Error('Display name must be between 1 and 30 characters.');
+      }
+      return actor.updateDisplayName(newDisplayName.trim());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['allUserProfiles'] });
+    },
+  });
+}
+
 // ─── Messages ─────────────────────────────────────────────────────────────────
 
 export function useGetMessages() {
